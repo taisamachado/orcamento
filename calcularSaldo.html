@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Orçamento</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .saldo {
+      margin-top: 20px;
+      font-size: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .reset {
+      background: #f44336;
+    }
+
+    .historico-btn {
+      background: #2196F3;
+    }
+
+    /* MODAIS */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 320px;
+      text-align: center;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn-nao {
+      background: #ccc;
+      color: black;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      max-height: 250px;
+      overflow-y: auto;
+      text-align: left;
+    }
+
+    li {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .valor {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Orçamento Mensal</h2>
+
+  <input type="number" id="orcamento" placeholder="Definir orçamento mensal">
+  <button onclick="salvarOrcamento()">Salvar orçamento</button>
+
+  <input type="text" id="descricao" placeholder="Descrição do gasto">
+  <input type="number" id="compra" placeholder="Valor da compra">
+  <button onclick="iniciarCompra()">Registrar compra</button>
+
+  <div class="saldo" id="saldo"></div>
+
+  <button class="historico-btn" onclick="abrirHistorico()">Ver histórico</button>
+  <button class="reset" onclick="resetarTudo()">Resetar orçamento</button>
+</div>
+
+<!-- MODAL CONFIRMAÇÃO -->
+<div class="modal" id="modalConfirmacao">
+  <div class="modal-content">
+    <p id="modal-texto"></p>
+    <div class="modal-buttons">
+      <button onclick="confirmar()">Sim</button>
+      <button class="btn-nao" onclick="fecharModal('modalConfirmacao')">Não</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTÓRICO -->
+<div class="modal" id="modalHistorico">
+  <div class="modal-content">
+    <h3>Histórico</h3>
+    <ul id="listaHistorico"></ul>
+    <button class="btn-nao" onclick="fecharModal('modalHistorico')">Fechar</button>
+  </div>
+</div>
+
+<script>
+  let saldo = localStorage.getItem("saldo");
+  let historico = JSON.parse(localStorage.getItem("historico")) || [];
+
+  let compraTemp = 0;
+  let descricaoTemp = "";
+  let etapaConfirmacao = 0;
+
+  if (saldo !== null) {
+    saldo = parseFloat(saldo);
+    atualizarSaldo();
+  }
+
+  function salvarOrcamento() {
+    const valor = parseFloat(document.getElementById("orcamento").value);
+    if (!isNaN(valor)) {
+      saldo = valor;
+      localStorage.setItem("saldo", saldo);
+      atualizarSaldo();
+    }
+  }
+
+  function iniciarCompra() {
+    const compra = parseFloat(document.getElementById("compra").value);
+    const descricao = document.getElementById("descricao").value;
+
+    if (isNaN(compra) || !descricao || saldo === null) return;
+
+    compraTemp = compra;
+    descricaoTemp = descricao;
+    etapaConfirmacao = 0;
+
+    if (compra >= saldo * 0.2) {
+      abrirModalConfirmacao("Certeza? Você precisa mesmo disso?");
+    } else {
+      finalizarCompra();
+    }
+  }
+
+  function confirmar() {
+    if (etapaConfirmacao === 0) {
+      etapaConfirmacao = 1;
+      abrirModalConfirmacao("Calma, é só por mais umas semanas 😌");
+    } else {
+      finalizarCompra();
+      fecharModal("modalConfirmacao");
+    }
+  }
+
+  function finalizarCompra() {
+    saldo -= compraTemp;
+    localStorage.setItem("saldo", saldo);
+    atualizarSaldo();
+
+    historico.unshift({
+      descricao: descricaoTemp,
+      valor: compraTemp
+    });
+
+    localStorage.setItem("historico", JSON.stringify(historico));
+
+    document.getElementById("compra").value = "";
+    document.getElementById("descricao").value = "";
+  }
+
+  function atualizarSaldo() {
+    document.getElementById("saldo").innerText =
+      "Saldo restante: R$ " + saldo.toFixed(2);
+  }
+
+  function abrirHistorico() {
+    const lista = document.getElementById("listaHistorico");
+    lista.innerHTML = "";
+
+    if (historico.length === 0) {
+      lista.innerHTML = "<li>Nenhuma compra registrada</li>";
+    } else {
+      historico.forEach(item => {
+        const li = document.createElement("li");
+        li.innerHTML = `${item.descricao} — <span class="valor">R$ ${item.valor.toFixed(2)}</span>`;
+        lista.appendChild(li);
+      });
+    }
+
+    document.getElementById("modalHistorico").style.display = "flex";
+  }
+
+  function abrirModalConfirmacao(texto) {
+    document.getElementById("modal-texto").innerText = texto;
+    document.getElementById("modalConfirmacao").style.display = "flex";
+  }
+
+  function fecharModal(id) {
+    document.getElementById(id).style.display = "none";
+  }
+
+  function resetarTudo() {
+    if (!confirm("Isso vai limpar o orçamento e o histórico. Continuar?")) return;
+
+    localStorage.removeItem("saldo");
+    localStorage.removeItem("historico");
+
+    saldo = null;
+    historico = [];
+
+    document.getElementById("saldo").innerText = "";
+  }
+</script>
+
+</body>
+</html>
