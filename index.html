@@ -1,132 +1,161 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meu Orçamento</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Orçamento</title>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 20px;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #eaeaea;
+  padding: 20px;
+}
 
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
+/* CARD */
+.card {
+  position: relative;
+  max-width: 400px;
+  margin: auto;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  z-index: 1;
+}
 
-    h2 {
-      text-align: center;
-    }
+/* IMAGEM NO FUNDO DO CARD */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("img/fundo.png");
+  background-size: cover;
+  background-position: center;
+  opacity: 100;
+  z-index: 0;
+}
 
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      font-size: 16px;
-    }
+/* CONTEÚDO */
+.card-content {
+  position: relative;
+  z-index: 1;
+  background: rgba(255,255,255,0.3);
+  padding: 20px;
+}
 
-    button {
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
+h2 { text-align: center; }
 
-    .saldo {
-      margin-top: 20px;
-      font-size: 20px;
-      text-align: center;
-      font-weight: bold;
-    }
+input, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 16px;
+}
 
-    .reset {
-      background: #f44336;
-    }
+button {
+  border: none;
+  border-radius: 6px;
+  color: white;
+  background: #4CAF50;
+}
 
-    .historico-btn {
-      background: #2196F3;
-    }
+.desfazer { background: #FF9800; }
+.historico { background: #2196F3; }
+.reset { background: #f44336; }
 
-    /* MODAIS */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
+.total {
+  margin-top: 10px;
+  text-align: center;
+}
 
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 320px;
-      text-align: center;
-    }
+.saldo {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
 
-    .modal-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
+.verde { color: green; }
+.amarelo { color: orange; }
+.vermelho { color: red; }
 
-    .btn-nao {
-      background: #ccc;
-      color: black;
-    }
+/* 🔥 MODAIS – CORREÇÃO AQUI */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* 👈 ISSO resolve */
+}
 
-    ul {
-      list-style: none;
-      padding: 0;
-      max-height: 250px;
-      overflow-y: auto;
-      text-align: left;
-    }
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 320px;
+  text-align: center;
+}
 
-    li {
-      padding: 8px;
-      border-bottom: 1px solid #eee;
-    }
+.btn-nao {
+  background: #ccc;
+  color: black;
+}
 
-    .valor {
-      font-weight: bold;
-    }
-  </style>
+ul {
+  list-style: none;
+  padding: 0;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+li {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.faixa-saldo {
+  margin-top: 12px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  text-align: center;
+}
+</style>
 </head>
+
 <body>
 
 <div class="card">
-  <h2>Orçamento Mensal</h2>
+  <div class="card-content">
 
-  <input type="number" id="orcamento" placeholder="Definir orçamento mensal">
-  <button onclick="salvarOrcamento()">Salvar orçamento</button>
+    <h2>Orçamento Mensal</h2>
 
-  <input type="text" id="descricao" placeholder="Descrição do gasto">
-  <input type="number" id="compra" placeholder="Valor da compra">
-  <button onclick="iniciarCompra()">Registrar compra</button>
+    <input type="number" id="orcamento" placeholder="Definir orçamento mensal">
+    <button onclick="salvarOrcamento()">Salvar orçamento</button>
 
-  <div class="saldo" id="saldo"></div>
+    <input type="text" id="descricao" placeholder="Descrição do gasto">
+    <input type="number" id="valor" placeholder="Valor da compra">
+    <button onclick="iniciarCompra()">Registrar compra</button>
 
-  <button class="historico-btn" onclick="abrirHistorico()">Ver histórico</button>
-  <button class="reset" onclick="resetarTudo()">Resetar orçamento</button>
+    <div class="faixa-saldo">
+    <div class="total" id="totalGasto"></div>
+    <div class="saldo" id="saldo"></div>
+</div>
+
+    <button class="desfazer" onclick="desfazerUltima()">Desfazer última compra</button>
+    <button class="historico" onclick="abrirHistorico()">Ver histórico</button>
+    <button class="reset" onclick="resetarTudo()">Resetar tudo</button>
+
+  </div>
 </div>
 
 <!-- MODAL CONFIRMAÇÃO -->
 <div class="modal" id="modalConfirmacao">
   <div class="modal-content">
-    <p id="modal-texto"></p>
-    <div class="modal-buttons">
-      <button onclick="confirmar()">Sim</button>
-      <button class="btn-nao" onclick="fecharModal('modalConfirmacao')">Não</button>
-    </div>
+    <p id="modalTexto"></p>
+    <button onclick="confirmar()">Sim</button>
+    <button class="btn-nao" onclick="fecharModal('modalConfirmacao')">Não</button>
   </div>
 </div>
 
@@ -140,112 +169,118 @@
 </div>
 
 <script>
-  let saldo = localStorage.getItem("saldo");
-  let historico = JSON.parse(localStorage.getItem("historico")) || [];
+let saldo = Number(localStorage.getItem("saldo"));
+let historico = JSON.parse(localStorage.getItem("historico")) || [];
 
-  let compraTemp = 0;
-  let descricaoTemp = "";
-  let etapaConfirmacao = 0;
+let compraTemp = null;
+let descricaoTemp = "";
+let etapa = 0;
 
-  if (saldo !== null) {
-    saldo = parseFloat(saldo);
-    atualizarSaldo();
+const frases = [
+  "Isso é necessidade ou emoção?",
+  "Seu eu do futuro está julgando 🙄",
+  "Dopamina agora ou paz depois?",
+  "Pix hoje, boleto emocional amanhã",
+  "Isso vale uma hora da sua vida?",
+  "Compra rápida, arrependimento eterno?"
+];
+
+atualizarTela();
+
+function salvarOrcamento() {
+  const v = Number(document.getElementById("orcamento").value);
+  if (v > 0) {
+    saldo = v;
+    salvar();
   }
+}
 
-  function salvarOrcamento() {
-    const valor = parseFloat(document.getElementById("orcamento").value);
-    if (!isNaN(valor)) {
-      saldo = valor;
-      localStorage.setItem("saldo", saldo);
-      atualizarSaldo();
-    }
+function iniciarCompra() {
+  const valor = Number(document.getElementById("valor").value);
+  const desc = document.getElementById("descricao").value.trim();
+  if (!saldo || valor <= 0 || !desc) return;
+
+  compraTemp = valor;
+  descricaoTemp = desc;
+  etapa = 0;
+
+  if (valor >= saldo * 0.2) {
+    abrirModal(frases[Math.floor(Math.random() * frases.length)]);
+  } else {
+    finalizarCompra();
   }
+}
 
-  function iniciarCompra() {
-    const compra = parseFloat(document.getElementById("compra").value);
-    const descricao = document.getElementById("descricao").value;
-
-    if (isNaN(compra) || !descricao || saldo === null) return;
-
-    compraTemp = compra;
-    descricaoTemp = descricao;
-    etapaConfirmacao = 0;
-
-    if (compra >= saldo * 0.2) {
-      abrirModalConfirmacao("Certeza? Você precisa mesmo disso?");
-    } else {
-      finalizarCompra();
-    }
+function confirmar() {
+  if (etapa === 0) {
+    etapa = 1;
+    abrirModal("Calma… é só por mais umas semanas 😌");
+  } else {
+    finalizarCompra();
+    fecharModal("modalConfirmacao");
   }
+}
 
-  function confirmar() {
-    if (etapaConfirmacao === 0) {
-      etapaConfirmacao = 1;
-      abrirModalConfirmacao("Calma, é só por mais umas semanas 😌");
-    } else {
-      finalizarCompra();
-      fecharModal("modalConfirmacao");
-    }
-  }
+function finalizarCompra() {
+  saldo -= compraTemp;
+  historico.unshift({ descricao: descricaoTemp, valor: compraTemp });
+  salvar();
+}
 
-  function finalizarCompra() {
-    saldo -= compraTemp;
-    localStorage.setItem("saldo", saldo);
-    atualizarSaldo();
+function desfazerUltima() {
+  if (!historico.length) return;
+  const ultima = historico.shift();
+  saldo += ultima.valor;
+  salvar();
+}
 
-    historico.unshift({
-      descricao: descricaoTemp,
-      valor: compraTemp
-    });
+function salvar() {
+  localStorage.setItem("saldo", saldo);
+  localStorage.setItem("historico", JSON.stringify(historico));
+  atualizarTela();
+  document.getElementById("valor").value = "";
+  document.getElementById("descricao").value = "";
+}
 
-    localStorage.setItem("historico", JSON.stringify(historico));
+function atualizarTela() {
+  if (!saldo && saldo !== 0) return;
 
-    document.getElementById("compra").value = "";
-    document.getElementById("descricao").value = "";
-  }
+  const total = historico.reduce((s, i) => s + i.valor, 0);
+  document.getElementById("totalGasto").innerText =
+    "Total gasto: R$ " + total.toFixed(2);
 
-  function atualizarSaldo() {
-    document.getElementById("saldo").innerText =
-      "Saldo restante: R$ " + saldo.toFixed(2);
-  }
+  const el = document.getElementById("saldo");
+  el.innerText = "Saldo: R$ " + saldo.toFixed(2);
+  el.className = "saldo";
 
-  function abrirHistorico() {
-    const lista = document.getElementById("listaHistorico");
-    lista.innerHTML = "";
+  const perc = saldo / (saldo + total);
+  if (perc > 0.5) el.classList.add("verde");
+  else if (perc > 0.2) el.classList.add("amarelo");
+  else el.classList.add("vermelho");
+}
 
-    if (historico.length === 0) {
-      lista.innerHTML = "<li>Nenhuma compra registrada</li>";
-    } else {
-      historico.forEach(item => {
-        const li = document.createElement("li");
-        li.innerHTML = `${item.descricao} — <span class="valor">R$ ${item.valor.toFixed(2)}</span>`;
-        lista.appendChild(li);
-      });
-    }
+function abrirHistorico() {
+  const ul = document.getElementById("listaHistorico");
+  ul.innerHTML = historico.length
+    ? historico.map(i => `<li>${i.descricao} — R$ ${i.valor.toFixed(2)}</li>`).join("")
+    : "<li>Nenhuma compra registrada</li>";
+  document.getElementById("modalHistorico").style.display = "flex";
+}
 
-    document.getElementById("modalHistorico").style.display = "flex";
-  }
+function abrirModal(txt) {
+  document.getElementById("modalTexto").innerText = txt;
+  document.getElementById("modalConfirmacao").style.display = "flex";
+}
 
-  function abrirModalConfirmacao(texto) {
-    document.getElementById("modal-texto").innerText = texto;
-    document.getElementById("modalConfirmacao").style.display = "flex";
-  }
+function fecharModal(id) {
+  document.getElementById(id).style.display = "none";
+}
 
-  function fecharModal(id) {
-    document.getElementById(id).style.display = "none";
-  }
-
-  function resetarTudo() {
-    if (!confirm("Isso vai limpar o orçamento e o histórico. Continuar?")) return;
-
-    localStorage.removeItem("saldo");
-    localStorage.removeItem("historico");
-
-    saldo = null;
-    historico = [];
-
-    document.getElementById("saldo").innerText = "";
-  }
+function resetarTudo() {
+  if (!confirm("Isso vai apagar tudo. Continuar?")) return;
+  localStorage.clear();
+  location.reload();
+}
 </script>
 
 </body>
